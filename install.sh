@@ -156,8 +156,6 @@ else
 	sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
 fi
 cd ..
-	if [ -e qpid-proton-0.7.tar.gz ]; then
-		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
 
 echo installing demo files
 nohup $APACHE_SERVICEMIX/bin/servicemix server &
