@@ -77,6 +77,7 @@ IRODS_HOME=`pwd`/irods-legacy/iRODS
 IRODS_CONFIG=$IRODS_HOME/server/config
 IRODS_RULES=$IRODS_HOME/server/config/reConfigs
 IRODS_CMD=$IRODS_HOME/server/bin/cmd
+ICOMMANDS=$IRODS_HOME/clients/icommands
 
 echo installing qpid messenger
 if [ -d qpid-proton-0.7 ]; then
@@ -98,9 +99,14 @@ else
 fi
 
 echo installing elasticsearch
-sudo apt-get install elasticsearch
-sudo sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' /etc/elasticsearch/elasticsearch.yml
-sudo service elasticsearch start
+if [ -e elasticsearch-1.1.1.tar.gz ]; then
+	echo file elasticsearch-1.1.1.tar.gz already exists, skip downloading
+else
+	wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.tar.gz
+fi
+tar zxvf elasticsearch-1.1.1.tar.gz
+sudo sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' elasticsearch-1.1.1/config/elasticsearch.yml
+nohup elasticsearch-1.1.1/bin/elasticsearch &
 echo waiting for elasticsearch
 sleep 1
 curl -XPUT 'http://localhost:9200/databook'
@@ -149,12 +155,23 @@ if [ "$a" != "" ]; then
 else
 	sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
 fi
-
 cd ..
+	if [ -e qpid-proton-0.7.tar.gz ]; then
+		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
+
+echo installing demo files
+nohup $APACHE_SERVICEMIX/bin/servicemix server &
+echo waiting for servicemix
+sleep 30
+wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
+wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
+$ICOMMANDS/bin/iput pg19033.txt
+$ICOMMANDS/bin/iput pg1661.txt
 
 echo done
-echo =======================================================================
+echo =========================================================================
+echo to start elasticsearch run indexing elasticsearch-1.1.1/bin/elasticsearch
 echo to start servicemix run indexing/apache-servicemix-5.0.0/bin/servicemix
 echo to start search gui run firefox indexing/elasticsearch/src/index.html
-echo =======================================================================
+echo =========================================================================
 cd ..
