@@ -7,64 +7,87 @@ sudo apt-get install openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python
 echo make sure that openjdk-6-jdk is the default package
 
 echo installing irods
-echo make sure you set zone name to databook
-git clone https://github.com/irods/irods-legacy
-cd irods-legacy/iRODS
-./irodssetup
-IRODS_HOME=`pwd`
-cd ../..
+if [ -d irods-legacy ]; then
+	echo irods already installed
+else
+	echo make sure you set zone name to databook
+	git clone https://github.com/irods/irods-legacy
+	cd irods-legacy/iRODS
+	./irodssetup
+	cd ../..
+fi
+IRODS_HOME=`pwd`/irods-legacy/iRODS
 
 echo installing qpid messenger
-wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
-tar zxvf qpid-proton-0.7.tar.gz
-cd qpid-proton-0.7
-mkdir build
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
-make all
-sudo make install
-cd ../..
+if [ -d qpid-proton-0.7 ]; then
+	echo qpid messenger already installed
+else
+	if [ -e qpid-proton-0.7.tar.gz ]; then
+		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
+	else
+		wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
+	fi
+	tar zxvf qpid-proton-0.7.tar.gz
+	cd qpid-proton-0.7
+	mkdir build
+	cd build
+	cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+	make all
+	sudo make install
+	cd ../..
+fi
 
 echo installing servicemix
-wget http://mirror.olnevhost.net/pub/apache/servicemix/servicemix-5/5.0.0/apache-servicemix-5.0.0.zip
-unzip apache-servicemix-5.0.0.zip
-cd apache-servicemix-5.0.0
-APACHE_SERVICEMIX=`pwd`
-echo please run the following command: 
-echo features:install camel-jms
-echo the press CTRL-D
-bin/servicemix
-xmlstarlet ed -N ns="http://activemq.apache.org/schema/core" \
-       --append "//ns:transportConnector[@name='openwire']" \
-       --type elem \
-       -n transportConnector \
-       --value "" \
-       --subnode "//transportConnector[not(@name)]" \
-       --type attr \
-       -n name \
-       --value "amqp" \
-       --subnode "//transportConnector[@name='amqp']" \
-       --type attr \
-       -n uri \
-       --value "amqp://0.0.0.0:5672" \
-       --append "//transportConnector[@name='amqp']" \
-       --type elem \
-       -n transportConnector \
-       --value "" \
-       --subnode "//transportConnector[not(@name)]" \
-       --type attr \
-       -n name \
-       --value "websocket" \
-       --subnode "//transportConnector[@name='websocket']" \
-       --type attr \
-       -n uri \
-       --value "ws://0.0.0.0:61614" \
-       --delete "//ns:jaasAuthenticationPlugin" \
-       etc/activemq.xml > etc/activemq.xml
-       
-       
-cd ..
-
+if [ -d apache-servicemix-5.0.0 ]; then
+	echo service mix already installed
+else
+	if [ -e apache-servicemix-5.0.0.zip ]; then
+		echo file apache-servicemix-5.0.0.zip already exists, skip downloading
+	else
+		wget http://mirror.olnevhost.net/pub/apache/servicemix/servicemix-5/5.0.0/apache-servicemix-5.0.0.zip
+	fi
+	unzip apache-servicemix-5.0.0.zip
+	cd apache-servicemix-5.0.0
+	
+	echo please run the following command: 
+	echo features:install camel-jms
+	echo the press CTRL-D
+	bin/servicemix
+	xmlstarlet ed -N ns="http://activemq.apache.org/schema/core" \
+		   --append "//ns:transportConnector[@name='openwire']" \
+		   --type elem \
+		   -n transportConnector \
+		   --value "" \
+		   --subnode "//transportConnector[not(@name)]" \
+		   --type attr \
+		   -n name \
+		   --value "amqp" \
+		   --subnode "//transportConnector[@name='amqp']" \
+		   --type attr \
+		   -n uri \
+		   --value "amqp://0.0.0.0:5672" \
+		   --append "//transportConnector[@name='amqp']" \
+		   --type elem \
+		   -n transportConnector \
+		   --value "" \
+		   --subnode "//transportConnector[not(@name)]" \
+		   --type attr \
+		   -n name \
+		   --value "websocket" \
+		   --subnode "//transportConnector[@name='websocket']" \
+		   --type attr \
+		   -n uri \
+		   --value "ws://0.0.0.0:61614" \
+		   --delete "//ns:jaasAuthenticationPlugin" \
+		   etc/activemq.xml > etc/activemq.xml.new
+		   
+	mv etc/activemq.xml etc/activemq.xml.bak
+	mv etc/activemq.xml.new etc/activemq.xml
+		   
+		   
+	cd ..
+fi
+APACHE_SERVICEMIX=`pwd`/apache-servicemix-5.0.0
 
 
 echo installing elasticsearch
