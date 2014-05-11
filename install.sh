@@ -6,37 +6,6 @@ echo installing required packages
 sudo apt-get install openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
 echo make sure that openjdk-6-jdk is the default package
 
-echo installing irods
-if [ -d irods-legacy ]; then
-	echo irods already installed
-else
-	echo make sure you set zone name to databook
-	git clone https://github.com/irods/irods-legacy
-	cd irods-legacy/iRODS
-	./irodssetup
-	cd ../..
-fi
-IRODS_HOME=`pwd`/irods-legacy/iRODS
-
-echo installing qpid messenger
-if [ -d qpid-proton-0.7 ]; then
-	echo qpid messenger already installed
-else
-	if [ -e qpid-proton-0.7.tar.gz ]; then
-		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
-	else
-		wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
-	fi
-	tar zxvf qpid-proton-0.7.tar.gz
-	cd qpid-proton-0.7
-	mkdir build
-	cd build
-	cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
-	make all
-	sudo make install
-	cd ../..
-fi
-
 echo installing servicemix
 if [ -d apache-servicemix-5.0.0 ]; then
 	echo service mix already installed
@@ -49,9 +18,11 @@ else
 	unzip apache-servicemix-5.0.0.zip
 	cd apache-servicemix-5.0.0
 	
+	echo =================================
 	echo please run the following command: 
 	echo features:install camel-jms
-	echo the press CTRL-D
+	echo then press CTRL-D
+	echo =================================
 	bin/servicemix
 	xmlstarlet ed -N ns="http://activemq.apache.org/schema/core" \
 		   --append "//ns:transportConnector[@name='openwire']" \
@@ -89,11 +60,49 @@ else
 fi
 APACHE_SERVICEMIX=`pwd`/apache-servicemix-5.0.0
 
+echo installing irods
+if [ -d irods-legacy ]; then
+	echo irods already installed
+else
+	echo =======================================
+	echo make sure you set zone name to databook
+	echo there will be no more interative steps
+	echo =======================================
+	git clone https://github.com/irods/irods-legacy
+	cd irods-legacy/iRODS
+	./irodssetup
+	cd ../..
+fi
+IRODS_HOME=`pwd`/irods-legacy/iRODS
+IRODS_CONFIG=$IRODS_HOME/server/config
+IRODS_RULES=$IRODS_HOME/server/config/reConfigs
+IRODS_CMD=$IRODS_HOME/server/bin/cmd
+
+echo installing qpid messenger
+if [ -d qpid-proton-0.7 ]; then
+	echo qpid messenger already installed
+else
+	if [ -e qpid-proton-0.7.tar.gz ]; then
+		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
+	else
+		wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
+	fi
+	tar zxvf qpid-proton-0.7.tar.gz
+	cd qpid-proton-0.7
+	mkdir build
+	cd build
+	cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+	make all
+	sudo make install
+	cd ../..
+fi
 
 echo installing elasticsearch
 sudo apt-get install elasticsearch
 sudo sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' /etc/elasticsearch/elasticsearch.yml
 sudo service elasticsearch start
+echo waiting for elasticsearch
+sleep 1
 curl -XPUT 'http://localhost:9200/databook'
 curl -XPUT 'http://localhost:9200/databook/entity/_mapping' -d '{"properties":{"uri":{"type":"string", "index":"not_analyzed"}, "type":{"type":"string", "index":"not_analyzed"}}}' 
 
@@ -129,12 +138,23 @@ cd ..
 echo installing config files
 git clone https://github.com/DICE-UNC/indexing-irods
 cd indexing-irods
-ln -s `which file` $IRODS_HOME/server/bin/cmd/file
-cp amqpsend.py $IRODS_HOME/server/bin/cmd/
-chmod +x $IRODS_HOME/server/bin/cmd/amqpsend.py
-cp *.re $IRODS_HOME/server/config/reConfigs/
-sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_HOME/server/config/server.config
+ln -s `which file` $IRODS_CMD/file
+cp amqpsend.py $IRODS_CMD
+chmod +x $IRODS_CMD/amqpsend.py
+cp *.re $IRODS_RULES
+
+a=`grep amqp $IRODS_CONFIG/server.config`
+if [ "$a" != "" ]; then
+	echo server.config is already edited
+else
+	sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
+fi
+
 cd ..
 
 echo done
+echo =======================================================================
+echo to start servicemix run indexing/apache-servicemix-5.0.0/bin/servicemix
+echo to start search gui run firefox indexing/elasticsearch/src/index.html
+echo =======================================================================
 cd ..
