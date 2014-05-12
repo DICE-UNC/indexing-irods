@@ -1,3 +1,6 @@
+echo kill all processes
+sudo killall java postgres irodsServer irodsReServer 
+
 echo make new directory
 mkdir indexing
 cd indexing
@@ -108,7 +111,7 @@ tar zxvf elasticsearch-1.1.1.tar.gz
 sudo sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' elasticsearch-1.1.1/config/elasticsearch.yml
 nohup elasticsearch-1.1.1/bin/elasticsearch &
 echo waiting for elasticsearch
-sleep 1
+sleep 10
 curl -XPUT 'http://localhost:9200/databook'
 curl -XPUT 'http://localhost:9200/databook/entity/_mapping' -d '{"properties":{"uri":{"type":"string", "index":"not_analyzed"}, "type":{"type":"string", "index":"not_analyzed"}}}' 
 
@@ -157,19 +160,16 @@ else
 fi
 cd ..
 
-echo installing demo files
-nohup $APACHE_SERVICEMIX/bin/servicemix server &
-echo waiting for servicemix
-sleep 30
-wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
-wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
-$ICOMMANDS/bin/iput pg19033.txt
-$ICOMMANDS/bin/iput pg1661.txt
-
 echo done
-echo =========================================================================
-echo to start elasticsearch run indexing elasticsearch-1.1.1/bin/elasticsearch
-echo to start servicemix run indexing/apache-servicemix-5.0.0/bin/servicemix
-echo to start search gui run firefox indexing/elasticsearch/src/index.html
-echo =========================================================================
+echo ===========================================================================
+echo to start elasticsearch run indexing/elasticsearch-1.1.1/bin/elasticsearch
+echo to start irods run $IRODS_HOME/irodsctl restart
+echo to start servicemix run $APACHE_SERVICEMIX/bin/servicemix server
+echo to start search gui run firefox indexing/elasticsearch-1.1.1/src/index.html
+echo to test run the follow commands:
+echo wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
+echo wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
+echo $ICOMMANDS/bin/iput pg19033.txt
+echo $ICOMMANDS/bin/iput pg1661.txt
+echo ===========================================================================
 cd ..
