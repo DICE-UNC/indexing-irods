@@ -1,3 +1,9 @@
+echo =============================================
+echo this is a demo installatin script
+echo "don't run this script on a production system!"
+echo press ENTER to continue
+echo =============================================
+read enter
 echo kill all processes
 sudo killall java postgres irodsServer irodsReServer 
 
@@ -69,7 +75,6 @@ if [ -d irods-legacy ]; then
 else
 	echo =======================================
 	echo make sure you set zone name to databook
-	echo there will be no more interative steps
 	echo =======================================
 	git clone https://github.com/irods/irods-legacy
 	cd irods-legacy/iRODS
@@ -160,16 +165,20 @@ else
 fi
 cd ..
 
-echo done
-echo ===========================================================================
-echo to start elasticsearch run indexing/elasticsearch-1.1.1/bin/elasticsearch
-echo to start irods run $IRODS_HOME/irodsctl restart
-echo to start servicemix run $APACHE_SERVICEMIX/bin/servicemix server
-echo to start search gui run firefox indexing/elasticsearch-1.1.1/src/index.html
+echo ========
+echo all done
+echo ========
+echo to start elasticsearch run: 
+echo indexing/elasticsearch-1.1.1/bin/elasticsearch
+echo to start irods run: 
+echo $IRODS_HOME/irodsctl restart
+echo to start servicemix run:
+echo $APACHE_SERVICEMIX/bin/servicemix server
+echo to start search gui run:
+echo firefox indexing/elasticsearch-1.1.1/src/index.html
 echo to test run the follow commands:
 echo wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
 echo wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
 echo $ICOMMANDS/bin/iput pg19033.txt
 echo $ICOMMANDS/bin/iput pg1661.txt
-echo ===========================================================================
 cd ..
