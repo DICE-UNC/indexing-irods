@@ -165,8 +165,6 @@ else
 fi
 cd ..
 
-cd ..
-
 echo ==========================================
 echo done
 echo start the services in the following order:
@@ -185,3 +183,5 @@ echo wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
 echo wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
 echo $ICOMMANDS/bin/iput pg19033.txt
 echo $ICOMMANDS/bin/iput pg1661.txt
+
+cd ..
