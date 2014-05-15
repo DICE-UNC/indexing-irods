@@ -166,6 +166,7 @@ fi
 cd ..
 
 cd ..
+
 echo ==========================================
 echo done
 echo start the services in the following order:
