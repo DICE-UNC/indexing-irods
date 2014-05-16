@@ -13,7 +13,7 @@ mkdir indexing
 cd indexing
 
 echo installing required packages
-sudo apt-get install openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
+sudo apt-get install maven curl openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
 echo make sure that openjdk-6-jdk is the default package
 
 echo installing servicemix
