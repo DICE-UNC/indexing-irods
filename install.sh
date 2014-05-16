@@ -169,7 +169,7 @@ cd ..
 echo ==========================================
 echo done
 echo start the services in the following order:
-echo irods | elasticsearch servicemix
+echo "irods | elasticsearch servicemix"
 echo ==========================================
 echo to start elasticsearch run: 
 echo indexing/elasticsearch-1.1.1/bin/elasticsearch
