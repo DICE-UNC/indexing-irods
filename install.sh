@@ -12,6 +12,8 @@ echo make new directory
 mkdir indexing
 cd indexing
 
+echo removing conflict packages
+sudo apt-get uninstall openjdk-7-jdk openjdk-7-jre
 echo installing required packages
 sudo apt-get install maven curl openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
 echo make sure that openjdk-6-jdk is the default package
