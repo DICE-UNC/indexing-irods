@@ -1,7 +1,7 @@
 if [ $1 ]; then
 	zoneName=$1
 else
-	echo please specify zoneName
+	echo no zoneName, exit
 	exit
 fi
 
