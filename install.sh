@@ -1,3 +1,9 @@
+if [ $1 ]; then
+	zoneName=$1
+else
+	zoneName=databook
+fi
+
 echo =============================================
 echo this is a demo installatin script
 echo "don't run this script on a production system!"
@@ -77,7 +83,7 @@ if [ -d irods-legacy ]; then
 	echo irods already installed
 else
 	echo =======================================
-	echo make sure you set zone name to databook
+	echo make sure you set zone name to $zoneName
 	echo =======================================
 	git clone https://github.com/irods/irods-legacy
 	cd irods-legacy/iRODS
@@ -134,6 +140,8 @@ cd ..
 echo 	indexing
 git clone https://github.com/DICE-UNC/indexing
 cd indexing
+sed -i "s/^\(irods[.]home=\/\)[^/]*\(\/.*.\)/\1$zoneName\2/" src/databook/config/irods.properties
+sed -i "s/^\(irods[.]zone=\).*/\1$zoneName/" src/databook/config/irods.properties 
 mvn install -DskipTests=true
 cp target/*.jar $APACHE_SERVICEMIX/deploy/
 cd ..
