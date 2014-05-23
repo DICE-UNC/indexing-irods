@@ -25,7 +25,7 @@ else
 	if [ -e apache-servicemix-5.0.0.zip ]; then
 		echo file apache-servicemix-5.0.0.zip already exists, skip downloading
 	else
-		wget http://mirror.olnevhost.net/pub/apache/servicemix/servicemix-5/5.0.0/apache-servicemix-5.0.0.zip
+		wget http://archive.apache.org/dist/servicemix/servicemix-5/5.0.0/apache-servicemix-5.0.0.zip
 	fi
 	unzip apache-servicemix-5.0.0.zip
 	cd apache-servicemix-5.0.0
