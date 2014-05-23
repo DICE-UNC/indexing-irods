@@ -1,6 +1,7 @@
 if [ $1 ]; then
 	zoneName=$1
 else
+	echo please specifiy zoneName, default databook
 	zoneName=databook
 fi
 
