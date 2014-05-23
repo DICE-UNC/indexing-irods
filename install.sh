@@ -188,7 +188,7 @@ echo $IRODS_HOME/irodsctl restart
 echo to start servicemix run:
 echo $APACHE_SERVICEMIX/bin/servicemix server
 echo to start search gui run:
-echo firefox indexing/elasticsearch-1.1.1/src/index.html
+echo firefox indexing/elasticsearch/src/index.html
 echo to test run the follow commands:
 echo wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
 echo wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
