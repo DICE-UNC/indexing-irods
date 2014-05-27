@@ -1,14 +1,23 @@
+OS=$(lsb_release -si)
+ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+VER=$(lsb_release -sr)
+if [ $OS == CentOS ]; then
+	centos=1
+fi
+
 if [ $1 ]; then
 	zoneName=$1
 else
-	echo no zoneName, exit
+	echo no zoneName exit
 	exit
 fi
+
+SERVICEMIX_VERSION=5.0.1
 
 echo =============================================
 echo this is a demo installatin script
 echo "don't run this script on a production system!"
-echo this script is tested on Ubuntu 14.04 LTS
+echo this script is tested on Ubuntu 14.04 LTS / CentOS 6.5
 echo press ENTER to continue
 echo =============================================
 read enter
@@ -20,29 +29,44 @@ mkdir indexing
 cd indexing
 
 echo removing conflict packages
-sudo apt-get remove openjdk-7-jdk openjdk-7-jre
-echo installing required packages
-sudo apt-get install maven curl openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
+if [ "$centos" ]; then
+	sudo yum remove java-1.7.0-openjdk
+	if [ -e epel-release-6-8.noarch.rpm ]; then
+		echo epel-release-6-8.noarch.rpm already exists, skip downloading
+	else 
+		wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+	fi
+	sudo rpm -Uvh epel-release-6-8.noarch.rpm
+	sudo yum install curl java-1.6.0-openjdk git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
+else
+	sudo apt-get remove openjdk-7-jdk openjdk-7-jre
+	echo installing required packages
+	sudo apt-get install maven curl openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
+fi
 echo make sure that openjdk-6-jdk is the default package
 
 echo installing servicemix
-if [ -d apache-servicemix-5.0.0 ]; then
+if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
 	echo service mix already installed
 else
-	if [ -e apache-servicemix-5.0.0.zip ]; then
-		echo file apache-servicemix-5.0.0.zip already exists, skip downloading
+	if [ -e apache-servicemix-$SERVICEMIX_VERSION.zip ]; then
+		echo file apache-servicemix-$SERVICEMIX_VERSION.zip already exists, skip downloading
 	else
-		wget http://archive.apache.org/dist/servicemix/servicemix-5/5.0.0/apache-servicemix-5.0.0.zip
+		wget http://archive.apache.org/dist/servicemix/servicemix-5/$SERVICEMIX_VERSION/apache-servicemix-$SERVICEMIX_VERSION.zip
 	fi
-	unzip apache-servicemix-5.0.0.zip
-	cd apache-servicemix-5.0.0
+	unzip apache-servicemix-$SERVICEMIX_VERSION.zip
+	cd apache-servicemix-$SERVICEMIX_VERSION
 	
-	echo =================================
-	echo please run the following command: 
-	echo features:install camel-jms
-	echo then press CTRL-D
-	echo =================================
-	bin/servicemix
+#	echo =================================
+#	echo please run the following command: 
+#	echo features:install camel-jms
+#	echo then press CTRL-D
+#	echo =================================
+	bin/start
+	echo waiting for servicemix
+	sleep 10
+	bin/client -p 8101 -h localhost -u karaf -u karaf features:install camel-jms
+	bin/stop
 	xmlstarlet ed -N ns="http://activemq.apache.org/schema/core" \
 		   --append "//ns:transportConnector[@name='openwire']" \
 		   --type elem \
@@ -77,7 +101,7 @@ else
 		   
 	cd ..
 fi
-APACHE_SERVICEMIX=`pwd`/apache-servicemix-5.0.0
+APACHE_SERVICEMIX=`pwd`/apache-servicemix-$SERVICEMIX_VERSION
 
 echo installing irods
 if [ -d irods-legacy ]; then
@@ -123,7 +147,11 @@ else
 	wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.tar.gz
 fi
 tar zxvf elasticsearch-1.1.1.tar.gz
-sudo sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' elasticsearch-1.1.1/config/elasticsearch.yml
+if [ "$centos" ]; then
+	echo disable multicast on CentOS
+	sed -i 's/^[# ]*discovery.zen.ping.multicast.enabled:.*/discovery.zen.ping.multicast.enabled: false/' elasticsearch-1.1.1/config/elasticsearch.yml
+fi
+sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' elasticsearch-1.1.1/config/elasticsearch.yml
 nohup elasticsearch-1.1.1/bin/elasticsearch &
 echo waiting for elasticsearch
 sleep 10
