@@ -37,7 +37,7 @@ if [ "$centos" ]; then
 		wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 	fi
 	sudo rpm -Uvh epel-release-6-8.noarch.rpm
-	sudo yum install curl java-1.6.0-openjdk git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
+	sudo yum install curl java-1.6.0-openjdk java-1.6.0-openjdk-devel byacc git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
 else
 	sudo apt-get remove openjdk-7-jdk openjdk-7-jre
 	echo installing required packages
