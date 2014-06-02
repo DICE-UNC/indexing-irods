@@ -30,18 +30,18 @@ cd indexing
 
 echo removing conflict packages
 if [ "$centos" ]; then
-	sudo yum remove java-1.7.0-openjdk
+#	sudo yum remove java-1.7.0-openjdk
 	if [ -e epel-release-6-8.noarch.rpm ]; then
 		echo epel-release-6-8.noarch.rpm already exists, skip downloading
 	else 
 		wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 	fi
 	sudo rpm -Uvh epel-release-6-8.noarch.rpm
-	sudo yum install curl java-1.6.0-openjdk java-1.6.0-openjdk-devel byacc git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
+	sudo yum install curl java-1.7.0-openjdk java-1.7.0-openjdk-devel byacc git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
 else
-	sudo apt-get remove openjdk-7-jdk openjdk-7-jre
+#	sudo apt-get remove openjdk-7-jdk openjdk-7-jre
 	echo installing required packages
-	sudo apt-get install maven curl openjdk-6-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
+	sudo apt-get install maven curl openjdk-7-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
 fi
 echo make sure that openjdk-6-jdk is the default package
 
