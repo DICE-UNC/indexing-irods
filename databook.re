@@ -642,7 +642,7 @@ sendUpdateDataObj(*userName, *objPath, *dataSize, *submitted, *dataId, *put) {
 					}, {
 						"type" : "DataObject",
 						"dataSize" : *dataSize,
-						"submitted" : *submitted
+						"submitted" : "*submitted"
 					}
 				]
 			}
