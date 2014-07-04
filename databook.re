@@ -126,8 +126,18 @@ postProcForCopy {
 postProcForCreateCommon : input string * input f double * boolean -> integer
 postProcForCreateCommon(*objPath, *dataSize, *put) {
 	*dataId = _getDataObjId(*objPath, *Found);
+	
 	if(*Found) {
-		sendUpdateDataObj($userNameClient, *objPath, str(*dataSize), *dataId, *put);
+		(*collName, *dataName) = splitDataObjPath(*objPath);
+		*createTime = getFirstResult(
+			SELECT DATA_MODIFY_TIME WHERE DATA_NAME = *dataName AND COLL_NAME = *collName,
+			"DATA_MODIFY_TIME", 
+			*Found
+		);	
+		*time = datetime(double(*createTime));
+		*formattedTimeStr = timeStr(*time);
+	
+		sendUpdateDataObj($userNameClient, *objPath, str(*dataSize), *formattedTimeStr, *dataId, *put);
 	} else {
 		genDataObjId(*objPath, *dataId);
 		(*collName, *dataName) = splitDataObjPath(*objPath);
@@ -135,7 +145,7 @@ postProcForCreateCommon(*objPath, *dataSize, *put) {
 			SELECT DATA_CREATE_TIME WHERE DATA_NAME = *dataName AND COLL_NAME = *collName,
 			"DATA_CREATE_TIME", 
 			*Found
-		);
+		);	
 		*time = datetime(double(*createTime));
 		*formattedTimeStr = timeStr(*time);
 		writeLine("serverLog", "postProcForCreateCommon: new data obj *objPath, *dataSize, *put");
@@ -213,7 +223,15 @@ postProcForOpen{
 			# this is probably a get operation
         		sendGetDataObj($userNameClient, $objPath);
 		} else {
-			sendUpdateDataObj($userNameClient, $objPath, str($dataSize), getDataObjId($objPath), false);
+			(*collName, *dataName) = splitDataObjPath(*objPath);
+			*createTime = getFirstResult(
+				SELECT DATA_MODIFY_TIME WHERE DATA_NAME = *dataName AND COLL_NAME = *collName,
+				"DATA_MODIFY_TIME", 
+				*Found
+			);	
+			*time = datetime(double(*createTime));
+			*formattedTimeStr = timeStr(*time);
+			sendUpdateDataObj($userNameClient, $objPath, str($dataSize), *formattedTimeStr, getDataObjId($objPath), false);
 		}
 		#sendAccessDataObj(ACCESS_TYPE_DATA_OBJ_CLOSE, $userNameClient, $objPath, *dataId);
 	}
@@ -553,6 +571,7 @@ sendAddDataObj(*userName, *objPath, *dataSize, *dateCreated, *put) {
 						"label" : "*objPathJson",
 						"dataSize" : "*dataSize",
 						"created" : "*dateCreated",
+						"submitted" : "*dateCreated",
 						"owner" : {
 							"uri": "*userNameJson"
 						},
@@ -609,7 +628,7 @@ sendAddColl(*userName, *collPath) {
 	sendAccessDataObj(ACCESS_TYPE_COLL_CREATE, *userName, str(*collPath), *objId);
 }
 
-sendUpdateDataObj(*userName, *objPath, *dataSize, *dataId, *put) {
+sendUpdateDataObj(*userName, *objPath, *dataSize, *submitted, *dataId, *put) {
 	*dataIdJson = jsonEncode(*dataId);
 	*msg='
 	{
@@ -622,7 +641,8 @@ sendUpdateDataObj(*userName, *objPath, *dataSize, *dataId, *put) {
 						"uri" : "*dataIdJson"
 					}, {
 						"type" : "DataObject",
-						"dataSize" : *dataSize
+						"dataSize" : *dataSize,
+						"submitted" : *submitted,
 					}
 				]
 			}
