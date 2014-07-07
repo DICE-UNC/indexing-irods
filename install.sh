@@ -66,7 +66,7 @@ else
 fi
 IRODS_HOME=/var/lib/irods
 IRODS_CONFIG=/etc/irods
-IRODS_RULES=$IROD_CONFIG
+IRODS_RULES=$IRODS_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
