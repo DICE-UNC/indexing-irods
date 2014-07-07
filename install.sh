@@ -17,10 +17,13 @@ SERVICEMIX_VERSION=5.0.1
 echo =============================================
 echo this is a demo installatin script
 echo "don't run this script on a production system!"
-echo this script is tested on Ubuntu 14.04 LTS / CentOS 6.5
+echo this script is tested on Ubuntu 14.04 LTS / CentOS 6.5 (install iRODS manually)
 echo press ENTER to continue
 echo =============================================
 read enter
+sudo service irods stop
+sudo service postgresql stop
+
 echo kill all processes
 sudo killall java postgres irodsServer irodsReServer 
 
@@ -28,9 +31,7 @@ echo make new directory
 mkdir indexing
 cd indexing
 
-echo removing conflict packages
 if [ "$centos" ]; then
-#	sudo yum remove java-1.7.0-openjdk
 	if [ -e epel-release-6-8.noarch.rpm ]; then
 		echo epel-release-6-8.noarch.rpm already exists, skip downloading
 	else 
@@ -39,11 +40,35 @@ if [ "$centos" ]; then
 	sudo rpm -Uvh epel-release-6-8.noarch.rpm
 	sudo yum install curl java-1.7.0-openjdk java-1.7.0-openjdk-devel byacc git xmlstarlet gcc gcc-c++ cmake libuuid-devel swig python-devel
 else
-#	sudo apt-get remove openjdk-7-jdk openjdk-7-jre
 	echo installing required packages
-	sudo apt-get install maven curl openjdk-7-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev
+	sudo apt-get install maven curl openjdk-7-jdk git xmlstarlet gcc cmake uuid-dev swig python-dev 
+	sudo apt-get install postgresql g++
 fi
-echo make sure that openjdk-6-jdk is the default package
+
+echo installing irods
+if [ -e /var/lib/irods ]; then
+	echo irods already installed
+else
+    wget ftp://ftp.renci.org/pub/irods/releases/4.0.2/irods-icat-4.0.2-64bit.deb
+    wget ftp://ftp.renci.org/pub/irods/releases/4.0.2/irods-database-plugin-postgres-1.2.deb
+    sudo dpkg -i irods-icat-4.0.2-64bit.deb irods-database-plugin-postgres-1.2.deb
+	sudo apt-get -f install
+	sudo service postgresql start
+	echo enter database username:
+	read testUsername
+	echo enter database password:
+	read testPassword
+	sudo su - postgres -c "psql -c \"CREATE USER $testUsername WITH PASSWORD '$testPassword';\"; psql -c 'CREATE DATABASE \"ICAT\"'; psql -c 'GRANT ALL PRIVILEGES ON DATABASE \"ICAT\" TO $testUsername'"
+	echo =======================================
+	echo make sure you set zone name to $zoneName
+	echo =======================================
+	sudo su - irods -c "packaging/setup_database.sh"
+fi
+IRODS_HOME=/var/lib/irods
+IRODS_CONFIG=/etc/irods
+IRODS_RULES=$IROD_CONFIG
+IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
+ICOMMANDS=/usr/bin
 
 echo installing servicemix
 if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
@@ -57,11 +82,6 @@ else
 	unzip apache-servicemix-$SERVICEMIX_VERSION.zip
 	cd apache-servicemix-$SERVICEMIX_VERSION
 	
-#	echo =================================
-#	echo please run the following command: 
-#	echo features:install camel-jms
-#	echo then press CTRL-D
-#	echo =================================
 	bin/start
 	echo waiting for servicemix
 	sleep 10
@@ -102,24 +122,6 @@ else
 	cd ..
 fi
 APACHE_SERVICEMIX=`pwd`/apache-servicemix-$SERVICEMIX_VERSION
-
-echo installing irods
-if [ -d irods-legacy ]; then
-	echo irods already installed
-else
-	echo =======================================
-	echo make sure you set zone name to $zoneName
-	echo =======================================
-	git clone https://github.com/irods/irods-legacy
-	cd irods-legacy/iRODS
-	./irodssetup
-	cd ../..
-fi
-IRODS_HOME=`pwd`/irods-legacy/iRODS
-IRODS_CONFIG=$IRODS_HOME/server/config
-IRODS_RULES=$IRODS_HOME/server/config/reConfigs
-IRODS_CMD=$IRODS_HOME/server/bin/cmd
-ICOMMANDS=$IRODS_HOME/clients/icommands
 
 echo installing qpid messenger
 if [ -d qpid-proton-0.7 ]; then
@@ -192,16 +194,16 @@ cd ..
 echo installing config files
 git clone https://github.com/DICE-UNC/indexing-irods
 cd indexing-irods
-ln -s `which file` $IRODS_CMD/file
-cp amqpsend.py $IRODS_CMD
-chmod +x $IRODS_CMD/amqpsend.py
-cp *.re $IRODS_RULES
+sudo ln -s `which file` $IRODS_CMD/file
+sudo cp amqpsend.py $IRODS_CMD
+sudo chmod +x $IRODS_CMD/amqpsend.py
+sudo cp *.re $IRODS_RULES
 
 a=`grep amqp $IRODS_CONFIG/server.config`
 if [ "$a" != "" ]; then
 	echo server.config is already edited
 else
-	sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
+	sudo sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
 fi
 cd ..
 
@@ -213,7 +215,8 @@ echo ==========================================
 echo to start elasticsearch run: 
 echo indexing/elasticsearch-1.1.1/bin/elasticsearch
 echo to start irods run: 
-echo $IRODS_HOME/irodsctl restart
+echo sudo service postgresql start
+echo sudo service irods start
 echo to start servicemix run:
 echo $APACHE_SERVICEMIX/bin/servicemix server
 echo to start search gui run:
@@ -221,7 +224,7 @@ echo firefox indexing/elasticsearch/src/index.html
 echo to test run the follow commands:
 echo wget http://www.gutenberg.org/cache/epub/19033/pg19033.txt
 echo wget http://www.gutenberg.org/cache/epub/1661/pg1661.txt
-echo $ICOMMANDS/bin/iput pg19033.txt
-echo $ICOMMANDS/bin/iput pg1661.txt
+echo iput pg19033.txt
+echo iput pg1661.txt
 
 cd ..
