@@ -66,7 +66,7 @@ else
 fi
 IRODS_HOME=/var/lib/irods
 IRODS_CONFIG=/etc/irods
-IRODS_RULES=$IRODS_CONFIG
+IRODS_RULES=$IROD_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
@@ -198,8 +198,9 @@ sudo ln -s `which file` $IRODS_CMD/file
 sudo cp amqpsend.py $IRODS_CMD
 sudo chmod +x $IRODS_CMD/amqpsend.py
 sudo cp *.re $IRODS_RULES
+sudo chown irods:irods $IRODS_RULES/*.re
 
-a=`sudo grep amqp $IRODS_CONFIG/server.config`
+a=`grep amqp $IRODS_CONFIG/server.config`
 if [ "$a" != "" ]; then
 	echo server.config is already edited
 else
