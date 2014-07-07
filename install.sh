@@ -199,7 +199,7 @@ sudo cp amqpsend.py $IRODS_CMD
 sudo chmod +x $IRODS_CMD/amqpsend.py
 sudo cp *.re $IRODS_RULES
 
-a=`grep amqp $IRODS_CONFIG/server.config`
+a=`sudo grep amqp $IRODS_CONFIG/server.config`
 if [ "$a" != "" ]; then
 	echo server.config is already edited
 else
