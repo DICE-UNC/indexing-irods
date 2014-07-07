@@ -17,7 +17,7 @@ SERVICEMIX_VERSION=5.0.1
 echo =============================================
 echo this is a demo installatin script
 echo "don't run this script on a production system!"
-echo this script is tested on Ubuntu 14.04 LTS / CentOS 6.5 (install iRODS manually)
+echo "this script is tested on Ubuntu 14.04 LTS / CentOS 6.5 (install iRODS manually)"
 echo press ENTER to continue
 echo =============================================
 read enter
