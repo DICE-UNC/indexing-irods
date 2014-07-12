@@ -5,13 +5,6 @@ if [ $OS == CentOS ]; then
 	centos=1
 fi
 
-if [ $1 ]; then
-	zoneName=$1
-else
-	echo no zoneName exit
-	exit
-fi
-
 SERVICEMIX_VERSION=5.0.1
 
 echo =============================================
@@ -21,13 +14,17 @@ echo "this script is tested on Ubuntu 14.04 LTS / CentOS 6.5 (install iRODS manu
 echo press ENTER to continue, type irods to install irods only, type indexing to install indexing only
 echo =============================================
 read enter
-if [ $enter == irods ]; then
+
+echo "zone name:"
+read zoneName
+
+if [ "$enter" == irods ]; then
 	install_irods=yes
 	echo "AMQP host:"
 	read hostname
 else 
 	hostname=`hostname`
-	if [ $enter == indexing ]; then
+	if [ "$enter" == indexing ]; then
 		install_irods=no
 	else
 		install_irods=yes
@@ -83,7 +80,7 @@ IRODS_RULES=$IROD_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
-if [ $enter != irods ]; then
+if [ "$enter" != irods ]; then
 echo installing servicemix
 if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
 	echo service mix already installed
@@ -97,7 +94,7 @@ else
 	cd apache-servicemix-$SERVICEMIX_VERSION
 	
 	bin/start
-	echo waiting for servicemix
+	echo "waiting for servicemix"
 	sleep 10
 	bin/client -p 8101 -h localhost -u karaf -u karaf features:install camel-jms
 	bin/stop
@@ -169,7 +166,7 @@ if [ "$centos" ]; then
 fi
 sed -i 's/^[# ]*cluster.name:.*/cluster.name: databookIndexer/' elasticsearch-1.1.1/config/elasticsearch.yml
 nohup elasticsearch-1.1.1/bin/elasticsearch &
-echo waiting for elasticsearch
+echo "waiting for elasticsearch"
 sleep 10
 curl -XPUT 'http://localhost:9200/databook'
 curl -XPUT 'http://localhost:9200/databook/entity/_mapping' -d '{"properties":{"uri":{"type":"string", "index":"not_analyzed"}, "type":{"type":"string", "index":"not_analyzed"}}}' 
