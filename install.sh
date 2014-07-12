@@ -82,6 +82,27 @@ IRODS_RULES=$IRODS_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
+if [ $install_irods == yes ]; then 
+echo installing qpid messenger
+if [ -d qpid-proton-0.7 ]; then
+	echo qpid messenger already installed
+else
+	if [ -e qpid-proton-0.7.tar.gz ]; then
+		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
+	else
+		wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
+	fi
+	tar zxvf qpid-proton-0.7.tar.gz
+	cd qpid-proton-0.7
+	mkdir build
+	cd build
+	cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+	make all
+	sudo make install
+	cd ../..
+fi
+fi
+
 if [ "$enter" != irods ]; then
 echo installing servicemix
 if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
@@ -135,25 +156,6 @@ else
 	cd ..
 fi
 APACHE_SERVICEMIX=`pwd`/apache-servicemix-$SERVICEMIX_VERSION
-
-echo installing qpid messenger
-if [ -d qpid-proton-0.7 ]; then
-	echo qpid messenger already installed
-else
-	if [ -e qpid-proton-0.7.tar.gz ]; then
-		echo file qpid-proton-0.7.tar.gz already exists, skip downloading
-	else
-		wget http://mirror.symnds.com/software/Apache/qpid/proton/0.7/qpid-proton-0.7.tar.gz
-	fi
-	tar zxvf qpid-proton-0.7.tar.gz
-	cd qpid-proton-0.7
-	mkdir build
-	cd build
-	cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
-	make all
-	sudo make install
-	cd ../..
-fi
 
 echo installing elasticsearch
 if [ -e elasticsearch-1.1.1.tar.gz ]; then
