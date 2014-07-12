@@ -76,7 +76,7 @@ else
 fi
 IRODS_HOME=/var/lib/irods
 IRODS_CONFIG=/etc/irods
-IRODS_RULES=$IROD_CONFIG
+IRODS_RULES=$IRODS_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
@@ -214,7 +214,7 @@ if [ $install_irods == yes ]; then
 	sudo chown irods:irods $IRODS_RULES/*.re
 	sudo sed -i 's/^\([^\"]*\"\)localhost\(.*\)/\1$hostname\2/' $IRODS_RULES/databook.re
 
-	a=`grep amqp $IRODS_CONFIG/server.config`
+	a=`sudo grep amqp $IRODS_CONFIG/server.config`
 	if [ "$a" != "" ]; then
 		echo server.config is already edited
 	else
