@@ -18,9 +18,22 @@ echo =============================================
 echo this is a demo installatin script
 echo "don't run this script on a production system!"
 echo "this script is tested on Ubuntu 14.04 LTS / CentOS 6.5 (install iRODS manually)"
-echo press ENTER to continue
+echo press ENTER to continue, type irods to install irods only, type indexing to install indexing only
 echo =============================================
 read enter
+if [ $enter == irods ]; then
+	install_irods=yes
+	echo "AMQP host:"
+	read hostname
+else 
+	hostname=`hostname`
+	if [ $enter == indexing ]; then
+		install_irods=no
+	else
+		install_irods=yes
+	fi
+fi
+
 sudo service irods stop
 sudo service postgresql stop
 
@@ -46,7 +59,7 @@ else
 fi
 
 echo installing irods
-if [ -e /var/lib/irods ]; then
+if [[ $install_irods != yes || -e /var/lib/irods ]]; then
 	echo irods already installed
 else
     wget ftp://ftp.renci.org/pub/irods/releases/4.0.2/irods-icat-4.0.2-64bit.deb
@@ -70,6 +83,7 @@ IRODS_RULES=$IROD_CONFIG
 IRODS_CMD=$IRODS_HOME/iRODS/server/bin/cmd
 ICOMMANDS=/usr/bin
 
+if [ $enter != irods ]; then
 echo installing servicemix
 if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
 	echo service mix already installed
@@ -190,23 +204,27 @@ cd elasticsearch
 mvn install
 cp target/*.jar $APACHE_SERVICEMIX/deploy/
 cd ..
-
-echo installing config files
-git clone https://github.com/DICE-UNC/indexing-irods
-cd indexing-irods
-sudo ln -s `which file` $IRODS_CMD/file
-sudo cp amqpsend.py $IRODS_CMD
-sudo chmod +x $IRODS_CMD/amqpsend.py
-sudo cp *.re $IRODS_RULES
-sudo chown irods:irods $IRODS_RULES/*.re
-
-a=`grep amqp $IRODS_CONFIG/server.config`
-if [ "$a" != "" ]; then
-	echo server.config is already edited
-else
-	sudo sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
 fi
-cd ..
+
+if [ $install_irods == yes ]; then
+	echo installing config files
+	git clone https://github.com/DICE-UNC/indexing-irods
+	cd indexing-irods
+	sudo ln -s `which file` $IRODS_CMD/file
+	sudo cp amqpsend.py $IRODS_CMD
+	sudo chmod +x $IRODS_CMD/amqpsend.py
+	sudo cp *.re $IRODS_RULES
+	sudo chown irods:irods $IRODS_RULES/*.re
+	sudo sed -i 's/^\(AMQP_HOST { \"\)[^\"]*\(.*\)/\1$hostname\2/' $IRODS_RULES/databook.re
+
+	a=`grep amqp $IRODS_CONFIG/server.config`
+	if [ "$a" != "" ]; then
+		echo server.config is already edited
+	else
+		sudo sed -i 's/^\(reRuleSet *\)\([^ ]*\)/\1amqp,databook_pep,databook,\2/' $IRODS_CONFIG/server.config
+	fi
+	cd ..
+fi
 
 echo ==========================================
 echo done
