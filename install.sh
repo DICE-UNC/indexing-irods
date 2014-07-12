@@ -184,7 +184,7 @@ cd ..
 echo 	indexing
 git clone https://github.com/DICE-UNC/indexing
 cd indexing
-sed -i "s/^\(irods[.]host=\/\)[^/]*\(\/.*.\)/\1$irodshost\2/" src/databook/config/irods.properties
+sed -i "s/^\(irods[.]host=\).*/\1$irodshost/" src/databook/config/irods.properties
 sed -i "s/^\(irods[.]home=\/\)[^/]*\(\/.*.\)/\1$zoneName\2/" src/databook/config/irods.properties
 sed -i "s/^\(irods[.]zone=\).*/\1$zoneName/" src/databook/config/irods.properties 
 mvn install -DskipTests=true
