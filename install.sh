@@ -212,7 +212,7 @@ if [ $install_irods == yes ]; then
 	sudo chmod +x $IRODS_CMD/amqpsend.py
 	sudo cp *.re $IRODS_RULES
 	sudo chown irods:irods $IRODS_RULES/*.re
-	sudo sed -i 's/^\([^\"]*\"\)localhost\(.*\)/\1$hostname\2/' $IRODS_RULES/databook.re
+	sudo sed -i 's/^\([^\"]*\"\)localhost\(.*\)/\1'$hostname'\2/' $IRODS_RULES/databook.re
 
 	a=`sudo grep amqp $IRODS_CONFIG/server.config`
 	if [ "$a" != "" ]; then
