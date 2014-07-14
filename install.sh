@@ -20,16 +20,21 @@ read zoneName
 
 if [ "$enter" == irods ]; then
 	install_irods=yes
+	install_indexing=no
 	echo "AMQP host:"
 	read hostname
 else 
 	hostname=`hostname`
 	if [ "$enter" == indexing ]; then
 		install_irods=no
+		install_indexing=yes
 		echo "iRODS host:"
 		read irodshost
 	else
 		install_irods=yes
+		install_indexing=yes
+		hostname=localhost
+		irodshost=localhost
 	fi
 fi
 
@@ -103,7 +108,7 @@ else
 fi
 fi
 
-if [ "$enter" != irods ]; then
+if [ $install_indexing == yes ]; then
 echo installing servicemix
 if [ -d apache-servicemix-$SERVICEMIX_VERSION ]; then
 	echo service mix already installed
