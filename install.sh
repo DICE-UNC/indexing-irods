@@ -17,9 +17,9 @@ read enter
 
 echo "zone name:"
 read zoneName
-echo "irods user:"
+echo "iRODS user:"
 read user
-echo "irods password:"
+echo "iRODS password:"
 read password
 
 if [ "$enter" == irods ]; then
