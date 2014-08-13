@@ -17,8 +17,8 @@ read enter
 
 echo "zone name:"
 read zoneName
-echo "irods username:"
-read username
+echo "irods user:"
+read user
 echo "irods password:"
 read password
 
@@ -198,7 +198,7 @@ cd indexing
 sed -i 	-e "s/^\(irods[.]host=\).*/\1$irodshost/" \
 	-e "s/^\(irods[.]home=\/\)[^/]*\(\/.*.\)/\1$zoneName\2/" \
 	-e "s/^\(irods[.]zone=\).*/\1$zoneName/" \
-	-e "s/^\(irods[.]username=\).*/\1$username/" \
+	-e "s/^\(irods[.]user=\).*/\1$user/" \
 	-e "s/^\(irods[.]password=\).*/\1$password/" \
 	src/databook/config/irods.properties 
 mvn install -DskipTests=true
