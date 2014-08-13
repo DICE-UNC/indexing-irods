@@ -17,6 +17,10 @@ read enter
 
 echo "zone name:"
 read zoneName
+echo "irods username:"
+read username
+echo "irods password:"
+read password
 
 if [ "$enter" == irods ]; then
 	install_irods=yes
@@ -191,9 +195,12 @@ cd ..
 echo 	indexing
 git clone https://github.com/DICE-UNC/indexing
 cd indexing
-sed -i "s/^\(irods[.]host=\).*/\1$irodshost/" src/databook/config/irods.properties
-sed -i "s/^\(irods[.]home=\/\)[^/]*\(\/.*.\)/\1$zoneName\2/" src/databook/config/irods.properties
-sed -i "s/^\(irods[.]zone=\).*/\1$zoneName/" src/databook/config/irods.properties 
+sed -i 	-e "s/^\(irods[.]host=\).*/\1$irodshost/" \
+	-e "s/^\(irods[.]home=\/\)[^/]*\(\/.*.\)/\1$zoneName\2/" \
+	-e "s/^\(irods[.]zone=\).*/\1$zoneName/" \
+	-e "s/^\(irods[.]username=\).*/\1$username/" \
+	-e "s/^\(irods[.]password=\).*/\1$password/" \
+	src/databook/config/irods.properties 
 mvn install -DskipTests=true
 cp target/*.jar $APACHE_SERVICEMIX/deploy/
 cd ..
