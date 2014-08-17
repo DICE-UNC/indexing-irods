@@ -303,6 +303,13 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 				failmsg(-1, "unsupported object type: *ItemName, *ItemType");
 			}
 		}
+		if(*ItemType == "-d") {
+			*Type = "DataObject";
+		} else if(*ItemType == "-C") {
+			*Type = "Collection";
+		} else {
+			failmsg(-1, "unsupported object type: *ItemName, *ItemType");
+		}
 		# need to check *AValue format
 		*DatabookName=triml(*AName, ":");
 		writeLine("serverLog", "*Option, *Id, *DatabookName, *AValue, *AUnit");
@@ -320,10 +327,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "union",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 							    "*DatabookNameJson" : "*AValueJson"
 							}
 						]
@@ -340,10 +347,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "diff",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"*DatabookNameJson" : "*AValueJson"
 							}
 						]
@@ -360,10 +367,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "modify",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"*DatabookNameJson" : "*AValueJson"
 							}
 						]
@@ -383,10 +390,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "modify",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 							    "*DatabookNameJson" : "*NAValueJson"
 							}
 						]
@@ -400,7 +407,7 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 		}
     	amqpSend("localhost", "metaQueue", *msg);
 		# send access log	
-		sendAccess(*accessType, $userNameClient, *Id, timeStrNow(), "*AName *accessType");
+		sendAccess(*accessType, $userNameClient, *Id, *Type, timeStrNow(), "*AName *accessType");
 	}
 	or {
 		cut;
@@ -422,6 +429,13 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 				failmsg(-1, "unsupported object type: *ItemName, *ItemType");
 			}
 		}
+		if(*ItemType == "-d") {
+			*Type = "DataObject";
+		} else if(*ItemType == "-C") {
+			*Type = "Collection";
+		} else {
+			failmsg(-1, "unsupported object type: *ItemName, *ItemType");
+		}
 		# need to check *AValue format
 		*IdJson = jsonEncode(*Id);
 		*DatabookNameJson = jsonEncode(*AName);
@@ -436,10 +450,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "union",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"metadata" : [
 									{
 										"attribute" : "*DatabookNameJson",
@@ -462,10 +476,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "diff",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"metadata" : [
 									{
 										"attribute" : "*DatabookNameJson",
@@ -488,10 +502,10 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "modify",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"metadata" : [
 									{
 										"attribute" : "*DatabookNameJson",
@@ -516,7 +530,7 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 						"operation" : "modify",
 						"hasPart" : [
 							{
-								"type" : "DataObject",
+								"type" : "*Type",
 								"uri" : "*IdJson"
 								"metadata" : [
 									{
@@ -526,7 +540,7 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 									}
 								]
 							}, {
-								"type" : "DataObject",
+								"type" : "*Type",
 								"metadata" : [
 									{
 										"attribute" : "*DatabookNameJson",
@@ -546,7 +560,7 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 		}
     	amqpSend("localhost", "metaQueue", *msg);
 		# send access log	
-		sendAccess(*accessType, $userNameClient, *Id, timeStrNow(), "*AName *accessType");
+		sendAccess(*accessType, $userNameClient, *Id, *Type, timeStrNow(), "*AName *accessType");
 	}
 }
 
@@ -847,11 +861,11 @@ ACCESS_TYPE_COLL_WRITE = "collection write"
 ACCESS_TYPE_COLL_CREATE = "collection create"
 ACCESS_TYPE_COLL_DELETE = "collection delete"
 
-sendAccess(*AccessType, *UserName, *DataId, *Time, *Description) {
-	sendAccessWithSession(*AccessType, *UserName, *DataId, *Time, *Description, getGlobalSessionId());
+sendAccess(*AccessType, *UserName, *DataId, *DataType, *Time, *Description) {
+	sendAccessWithSession(*AccessType, *UserName, *DataId, *DataType, *Time, *Description, getGlobalSessionId());
 }
 
-sendAccessWithSession(*AccessType, *UserName, *DataId, *Time, *Description, *SessionId) {
+sendAccessWithSession(*AccessType, *UserName, *DataId, *DataType, *Time, *Description, *SessionId) {
 	*AccessId = jsonEncode(genAccessId(*AccessType, *UserName, *DataId, *Time, *Description));
 	*UserNameJson = jsonEncode(*UserName);
 	*DescriptionJson = jsonEncode(*Description);
@@ -866,14 +880,17 @@ sendAccessWithSession(*AccessType, *UserName, *DataId, *Time, *Description, *Ses
 					"type" : "Access",
 					"uri" : "*AccessId",
 					"title" : "*AccessType",
-					"linkedDataEntity" : [
+					"linkingDataEntity" : [
 						{
-							"dataEntityLink" : "*DataIdJson"
+							"dataEntity" : {
+								"type" : "*DataType",
+								"uri": "*DataIdJson"
+							}
 						}
 					],
-					"linkedUserEntity" : [
+					"linkingUser" : [
 						{
-							"userEntityLink" : "*UserNameJson"
+							"user" : "*UserNameJson"
 						}	
 					],
 					"created" : "*Time",
@@ -1244,7 +1261,7 @@ sendAccessDataObj(*accessType, *userId, *objPath, *dataId) {
 	} else {
 		 *description = "*objPath *accessType";
 	}
-	sendAccess(*accessType, *userId, *dataId, timeStrNow(), *description);
+	sendAccess(*accessType, *userId, *dataId, "DataObject", timeStrNow(), *description);
 }
 
 # this closes the data obj immediately to trigger event
