@@ -278,15 +278,19 @@ preProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AUn
 	}
 }
 
-postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AUnit, *NAName, *NAValue, *NAUnit) {
-	on(include(*ItemName) && *AName == "data:id") {
-		writeLine("serverLog", "skip data:id");
-		succeed;
+toJsonType(*IrodsType) {
+	if(*IrodsType == "-d") {
+		*Type = "DataObject";
+	} else if(*IrodsType == "-C") {
+		*Type = "Collection";
+	} else {
+		failmsg(-1, "unsupported object type: *ItemName, *ItemType");
 	}
-	on(include(*ItemName) && databookAttr(*AName)) {
-		cut;
-		writeLine("serverLog", "processing *AName for *ItemName");
-		if(*Option == "rmi") {
+	*Type;
+}
+
+objIdFromName(*ItemName, *ItemType, *Option) {
+	if(*Option == "rmi") {
 			if(*ItemType == "-d") {
 				*Id = getDataObjIdById(*ItemName);
 			} else if(*ItemType == "-C") {
@@ -303,13 +307,19 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 				failmsg(-1, "unsupported object type: *ItemName, *ItemType");
 			}
 		}
-		if(*ItemType == "-d") {
-			*Type = "DataObject";
-		} else if(*ItemType == "-C") {
-			*Type = "Collection";
-		} else {
-			failmsg(-1, "unsupported object type: *ItemName, *ItemType");
-		}
+		*Id;
+}
+
+postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AUnit, *NAName, *NAValue, *NAUnit) {
+	on(include(*ItemName) && *AName == "data:id") {
+		writeLine("serverLog", "skip data:id");
+		succeed;
+	}
+	on(include(*ItemName) && databookAttr(*AName)) {
+		cut;
+		writeLine("serverLog", "processing *AName for *ItemName");
+		*Id = objIdFromName(*ItemName, *ItemType, *Option);
+		*Type = toJsonType(*ItemType);
 		# need to check *AValue format
 		*DatabookName=triml(*AName, ":");
 		writeLine("serverLog", "*Option, *Id, *DatabookName, *AValue, *AUnit");
@@ -412,30 +422,8 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 	or {
 		cut;
 		writeLine("serverLog", "processing *AName for *ItemName");
-		if(*Option == "rmi") {
-			if(*ItemType == "-d") {
-				*Id = getDataObjIdById(*ItemName);
-			} else if(*ItemType == "-C") {
-				*Id = getCollIdById(*ItemName);
-			} else {
-				failmsg(-1, "unsupported object type: *ItemName, *ItemType");
-			}
-		} else {
-			if(*ItemType == "-d") {
-				*Id = getDataObjId(*ItemName);
-			} else if(*ItemType == "-C") {
-				*Id = getCollId(*ItemName);
-			} else {
-				failmsg(-1, "unsupported object type: *ItemName, *ItemType");
-			}
-		}
-		if(*ItemType == "-d") {
-			*Type = "DataObject";
-		} else if(*ItemType == "-C") {
-			*Type = "Collection";
-		} else {
-			failmsg(-1, "unsupported object type: *ItemName, *ItemType");
-		}
+		*Id = objIdFromName(*ItemName, *ItemType, *Option);
+		*Type = toJsonType(*ItemType);
 		# need to check *AValue format
 		*IdJson = jsonEncode(*Id);
 		*DatabookNameJson = jsonEncode(*AName);
