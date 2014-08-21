@@ -878,7 +878,9 @@ sendAccessWithSession(*AccessType, *UserName, *DataId, *DataType, *Time, *Descri
 					],
 					"linkingUser" : [
 						{
-							"user" : "*UserNameJson"
+							"userEntity" : {
+								"uri": "*UserNameJson"
+							}
 						}	
 					],
 					"created" : "*Time",
