@@ -16,7 +16,7 @@ acPostProcForOpen{
 	postProcForOpen;
 }
 
-postProcForCollCreate{
+acPostProcForCollCreate{
 	postProcForCollCreate;
 }
 

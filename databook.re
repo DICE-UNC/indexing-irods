@@ -86,7 +86,7 @@ required(*Attr) =
 
 # timeStr(*time) = timestrf(*time, "%Y %m %d %H:%M:%S")
 # jackson doesn't support this format, just use unix integer serialization
-timeStr(*time) = str(double(*time))
+timeStr(*time) = str(double(*time))++"000"
 
 timeStrNow = timeStr(time())
 
@@ -615,7 +615,7 @@ sendAddColl(*userName, *collPath) {
 						"type" : "Collection",
 						"uri" : "*objIdJson",
 						"partOf" : [ {
-							"type": "Colleciton",
+							"type": "Collection",
 							"uri": "*collIdJson"
 						} ],
 						"label" : "*collPathJson"
@@ -870,6 +870,7 @@ sendAccessWithSession(*AccessType, *UserName, *DataId, *DataType, *Time, *Descri
 					"title" : "*AccessType",
 					"linkingDataEntity" : [
 						{
+							"uri": "dataEntityLink*Time",
 							"dataEntity" : {
 								"type" : "*DataType",
 								"uri": "*DataIdJson"
@@ -878,7 +879,8 @@ sendAccessWithSession(*AccessType, *UserName, *DataId, *DataType, *Time, *Descri
 					],
 					"linkingUser" : [
 						{
-							"userEntity" : {
+							"uri": "userLink*Time",
+							"user" : {
 								"uri": "*UserNameJson"
 							}
 						}	
@@ -1099,16 +1101,31 @@ genPreview(*objPath, *previewThumbPath, *previewPath, *script) {
 	(*previewPath, *previewPathTmp, *previewThumbPath, *previewThumbPathTmp) = getPreviewPaths(*collName, *dataName);
 
 	writeLine("serverLog", "generating preview for *objPath, ext = "++getFileExt(*objPath) ++", phypath = *objPhyPath");
+		*errcode = execCmd(*script, list(*objPhyPath, *previewThumbPath, *previewThumbPathTmp, *previewPath, *previewPathTmp), *status);
+
+		if(*errcode < 0) {
+			writeLine("serverLog", "convert thumbnail error *errcode"); # : out = *out, err = *err");
+		}
+
+		# send thumb link first, the preview attribute triggers a caching on the VIVO side
+		addMetaAV(*objPath, ATTR_THUMB_PREVIEW, *previewThumbPath, "-d");
+		addMetaAV(*objPath, ATTR_PREVIEW, *previewPath, "-d");
+#	genPreviewDelay(*objPath, *objPhyPath, *previewThumbPath, *previewThumbPathTmp, *previewPath, *previewPathTmp, *script)
+}
+
+genPreviewDelay(*objPath, *objPhyPath, *previewThumbPath, *previewThumbPathTmp, *previewPath, *previewPathTmp, *script) {
+	delay("<PLUSET>0s</PLUSET>") {
 	
-	*errcode = execCmd(*script, list(*objPhyPath, *previewThumbPath, *previewThumbPathTmp, *previewPath, *previewPathTmp), *status);
+		*errcode = execCmd(*script, list(*objPhyPath, *previewThumbPath, *previewThumbPathTmp, *previewPath, *previewPathTmp), *status);
 
-	if(*errcode < 0) {
-		writeLine("serverLog", "convert thumbnail error *errcode"); # : out = *out, err = *err");
+		if(*errcode < 0) {
+			writeLine("serverLog", "convert thumbnail error *errcode"); # : out = *out, err = *err");
+		}
+
+		# send thumb link first, the preview attribute triggers a caching on the VIVO side
+		addMetaAV(*objPath, ATTR_THUMB_PREVIEW, *previewThumbPath, "-d");
+		addMetaAV(*objPath, ATTR_PREVIEW, *previewPath, "-d");
 	}
-
-	# send thumb link first, the preview attribute triggers a caching on the VIVO side
-	addMetaAV(*objPath, ATTR_THUMB_PREVIEW, *previewThumbPath, "-d");
-	addMetaAV(*objPath, ATTR_PREVIEW, *previewPath, "-d");
 }
 
 genPicPreview(*objPath, *previewThumbPath, *previewPath) {
@@ -1202,7 +1219,7 @@ execCmd(*cmd, *args, *status) {
 		*argStr = *argStr++execCmdArg(*arg)++" ";
 	}
 	*argStr = substr(*argStr, 0, strlen(*argStr) - 1);
-	writeLine("serverLog", *argStr);
+	writeLine("serverLog", *cmd ++ " " ++ *argStr);
 	*e = errorcode(msiExecCmd(*cmd, *argStr, "null", "null", "null", *status));
 	#if(*e < 0) {
 	#	msiGetStderrInExecCmdOut(*status, *err);
