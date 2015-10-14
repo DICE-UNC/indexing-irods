@@ -419,7 +419,7 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
 		# send access log	
 		sendAccess(*accessType, $userNameClient, *Id, *Type, timeStrNow(), "*AName *accessType");
 	}
-	or {
+	on(include(*ItemName)) {
 		cut;
 		writeLine("serverLog", "processing *AName for *ItemName");
 		*Id = objIdFromName(*ItemName, *ItemType, *Option);
@@ -549,6 +549,9 @@ postProcForModifyAVUMetadata(*Option, *ItemType, *ItemName, *AName, *AValue, *AU
     	amqpSend("localhost", "metaQueue", *msg);
 		# send access log	
 		sendAccess(*accessType, $userNameClient, *Id, *Type, timeStrNow(), "*AName *accessType");
+	}
+	or { 
+		succeed;
 	}
 }
 
